@@ -19,6 +19,6 @@ from . import view
 from wechat import views as wechat_views
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('check/', wechat_views.check, name='check'),
+    path('check/', wechat_views.index, name='check'),
     path('', view.hello, name='hello'),
 ]
