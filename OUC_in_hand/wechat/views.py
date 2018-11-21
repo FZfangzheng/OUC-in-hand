@@ -20,5 +20,7 @@ def index(request):
     # 之后信息请求
     elif request.method == "POST":
         wechat = wechat_function.WeChat()
-        wechat.handler(request.body)
+        wechat_data = wechat.handler(request.body)
+        # 分辨信息类型
+        
         return HttpResponse(wechat.reply(wechat.data.get("Content")))
