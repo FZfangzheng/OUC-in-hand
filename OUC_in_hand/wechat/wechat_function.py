@@ -1,4 +1,6 @@
 import hashlib
+import xmltodict
+import time
 
 
 class WeChat:
@@ -15,3 +17,21 @@ class WeChat:
             return True
         else:
             return False
+
+    def handler(self, message):
+        self.data = xmltodict.parse(message).get("xml")
+        print("receive", self.data)
+        return self.data
+
+    def reply(self, content):
+        template = """<xml>
+                <ToUserName>{}</ToUserName>
+                <FromUserName>{}</FromUserName>
+                <CreateTime>{}</CreateTime>
+                <MsgType>{}</MsgType>
+                <Content>{}</Content>
+                </xml>"""
+
+        result = template.format(self.data["FromUserName"], self.data["ToUserName"], int(time.time()), "text", content)
+        print(result)
+        return result
