@@ -21,4 +21,4 @@ def index(request):
     elif request.method == "POST":
         wechat = wechat_function.WeChat()
         wechat.handler(request.body)
-        return HttpResponse(wechat.reply(wechat.data.get("Content")))
+        return HttpResponse(wechat.reply_text(wechat.data.get("Content")))

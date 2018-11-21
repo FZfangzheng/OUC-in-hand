@@ -23,7 +23,31 @@ class WeChat:
         print("receive", self.data)
         return self.data
 
-    def reply(self, content):
+    # 用于分辨信息类型，文本，图片等
+    def classify(self):
+        type = self.data.get("MsgType")
+        if type == "text":
+            return 1
+        else:
+            return 2
+    # 文本信息功能回复
+    def function_text_classify(self):
+        if self.data.get("Content") == "课表":
+            pass
+        elif self.data.get("Content") == "成绩":
+            pass
+        elif self.data.get("Content") == "排名":
+            pass
+        elif self.data.get("Content") == "考场":
+            pass
+        elif self.data.get("Content") == "自习室":
+            pass
+        elif self.data.get("Content") == "给分情况":
+            pass
+        elif self.data.get("Content") == "错误报告":
+            pass
+
+    def reply_text(self, content):
         template = """<xml>
                 <ToUserName>{}</ToUserName>
                 <FromUserName>{}</FromUserName>
