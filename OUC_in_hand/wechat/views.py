@@ -21,5 +21,10 @@ def index(request):
     elif request.method == "POST":
         wechat = wechat_function.WeChat()
         wechat.handler(request.body)
-        return HttpResponse(wechat.reply_text(wechat.data.get("Content")))
+        if wechat.classify():
+            content = wechat.function_text_classify()
+            return HttpResponse(wechat.reply_text(content))
+        else:
+            return HttpResponse("success")
+
 

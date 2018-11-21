@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'OUC_in_hand.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',  # 或者使用 mysql.connector.django
+        'NAME': 'wechat',
+        'USER': 'root',
+        'PASSWORD': 'fz19980726@fz',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 

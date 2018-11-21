@@ -7,9 +7,8 @@ import re
 from bs4 import BeautifulSoup
 import base64
 import hashlib
-# import matplotlib.pyplot as plt
-# from Thread import *
 from functions import Thread
+
 
 class Function:
     def __init__(self, numberid, url, sessionid, deskey, nowtime):
