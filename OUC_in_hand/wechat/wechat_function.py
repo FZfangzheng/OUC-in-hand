@@ -3,6 +3,7 @@ import xmltodict
 import time
 from functions import User
 from wechat.wechat_session import *
+from functions.models import *
 
 class WeChat:
     def __init__(self):
@@ -39,22 +40,31 @@ class WeChat:
             create_session(self.data.get("FromUserName"), "binding", 1)
             return "请输入账号"
         # 处在绑定账号状态
-        if find_session(self.data.get("FromUserName"), "binding1") == 1:
-            create_session(self.data.get("FromUserName"), "username", self.data.get("Content"))
-            # 输入密码状态
-            change_session(self.data.get("FromUserName"), "binding", 2)
-            return "请输入密码"
+        if find_session(self.data.get("FromUserName"), "binding") == "1":
+            if len(Users.objects.filter(user=self.data.get("Content"))) == 0:
+                create_session(self.data.get("FromUserName"), "username", self.data.get("Content"))
+                # 输入密码状态
+                change_session(self.data.get("FromUserName"), "binding", 2)
+                return "请输入密码"
+            else:
+                return "该账号已被注册"
         # 绑定密码状态
-        if find_session(self.data.get("FromUserName"), "binding") == 2:
+        if find_session(self.data.get("FromUserName"), "binding") == "2":
             usr = find_session(self.data.get("FromUserName"), "username")
             pwd = self.data.get("Content")
             user = User.Student(usr, pwd)
-            # 清空session
-            del_session(self.data.get("FromUserName"), "binding")
-            del_session(self.data.get("FromUserName"), "username")
+            # 登陆成功
             if user.loginext():
+                us = Users(openid=self.data.get("FromUserName"), user=usr, pwd=pwd)
+                us.save()
+                # 清空session
+                del_session(self.data.get("FromUserName"), "binding")
+                del_session(self.data.get("FromUserName"), "username")
                 return "绑定成功！"
             else:
+                # 清空session
+                del_session(self.data.get("FromUserName"), "binding")
+                del_session(self.data.get("FromUserName"), "username")
                 return "绑定失败！"
         if self.data.get("Content") == "课表":
             pass

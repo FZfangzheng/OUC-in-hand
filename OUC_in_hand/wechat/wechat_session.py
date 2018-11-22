@@ -7,37 +7,29 @@ def create_session(openid, name, content):
 
 
 def del_session(openid, name):
-    if len(MySession.objects.filter(openid=openid)) == 0:
+    mysessions = MySession.objects.filter(openid=openid).filter(wechat_session=name)
+    if len(mysessions) == 0:
         return False
     else:
-        mysession = MySession.objects.filter(openid=openid).get(wechat_session=name)
-        mysession.delete()
+        mysessions[0].delete()
         return True
 
 
 def change_session(openid, name, content):
-    mysession = MySession.objects.filter(openid=openid).get(wechat_session=name)
-    mysession.session_value = content
-    mysession.save()
+    MySession.objects.filter(openid=openid).filter(wechat_session=name).update(session_value=content)
 
 
 def isExist(openid, name):
-    if len(MySession.objects.filter(openid=openid)) == 0:
+    mysessions = MySession.objects.filter(openid=openid).filter(wechat_session=name)
+    if len(mysessions) == 0:
         return False
     else:
-        mysession = MySession.objects.filter(openid=openid).get(wechat_session=name)
-        if mysession != 0:
-            return True
-        else:
-            return True
+        return True
 
 
 def find_session(openid, name):
-    if len(MySession.objects.filter(openid=openid)) == 0:
+    mysessions = MySession.objects.filter(openid=openid).filter(wechat_session=name)
+    if len(mysessions) == 0:
         return ""
     else:
-        mysession = MySession.objects.filter(openid=openid).get(wechat_session=name)
-        if len(mysession) == 0:
-            return ""
-        else:
-            return mysession.session_value
+        return mysessions[0].session_value
