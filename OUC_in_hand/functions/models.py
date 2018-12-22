@@ -11,6 +11,17 @@ class Users(models.Model):
 
 class Grade(models.Model):
     openid = models.CharField(max_length=30)
-    class_name =models.CharField(max_length=30)
+    class_name = models.CharField(max_length=50)
     class_credit = models.CharField(max_length=30)
     class_grade = models.CharField(max_length=30)
+
+
+class Exam(models.Model):
+    openid = models.CharField(max_length=30)
+    class_name = models.CharField(max_length=50)
+    class_credit = models.CharField(max_length=30)
+    class_type = models.CharField(max_length=30)
+    class_way = models.CharField(max_length=30)
+    class_time = models.CharField(max_length=30)
+    class_location = models.CharField(max_length=30)
+    class_seat = models.CharField(max_length=30)

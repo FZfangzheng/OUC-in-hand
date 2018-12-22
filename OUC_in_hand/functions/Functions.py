@@ -18,7 +18,7 @@ class Function:
         self.__deskey = deskey
         self.__nowtime = nowtime
         self.__xn = '2018'
-        self.__xq = '0'
+        self.__xq = '1'
 
     @property
     def nowtime(self):
@@ -60,31 +60,73 @@ class Function:
     def xq(self, xq):
         self.__xq = xq
 
-    def changTime(self):
-        timeId = input("输入你要选择的时间序号：\n1.2018秋季学期\n2.2018夏季学期\n3.2018春季学期\n"
-              "4.2017秋季学期\n5.2017夏季学期\n6.2017春季学期\n"
-              "7.2016秋季学期\n")
-        if timeId == "1":
-            self.xn = "2018"
-            self.xq = "1"
-        if timeId == "2":
-            self.xn = "2018"
-            self.xq = "0"
-        if timeId == "3":
-            self.xn = "2017"
-            self.xq = "2"
-        if timeId == "4":
-            self.xn = "2017"
-            self.xq = "1"
-        if timeId == "5":
-            self.xn = "2017"
-            self.xq = "0"
-        if timeId == "6":
-            self.xn = "2016"
-            self.xq = "2"
-        if timeId == "7":
-            self.xn = "2016"
-            self.xq = "1"
+    def myclass(self):
+        params = "xn="+self.__xn+"&xq="+self.__xq+"&xh="+self.__numberid
+        # str to bytes
+        params = str.encode(params)
+        baseparams = base64.b64encode(params)
+        # 转化bytes to str
+        baseparams = bytes.decode(baseparams)
+        # strurl = "http://"+self.__nowUrl+"/student/wsxk.xskcb.jsp?params="+baseparams
+        strurl = "http://jwgl.ouc.edu.cn/STU_DynamicInitDataAction.do?classPath=com.kingosoft.service.jw.student.jxap.LessonScheduleService&mtd=getDataSource&xn=2018&xq=1"
+        headers = {'Host': self.__nowUrl,
+                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+                   'Accept-Encoding': 'gzip, deflate',
+                   'Content-Type':'application/x-www-form-urlencoded',
+                   'Referer': 'http://'+self.__nowUrl+'/student/jxap.jxapb.html?menucode=JW130501',
+                   'Content-Length': '824',
+                   'Connection': 'keep-alive',
+                   'Cookie': 'JSESSIONID=' + self.__sessionid,
+                   'Upgrade-Insecure-Requests': '1'}
+        params = "classPath=com.kingosoft.service.jw.student.jxap.LessonScheduleService&mtd=getDataSource&xn=2018&xq=1"
+        s = requests.session()
+        s.headers.update(headers)
+        r = s.post(strurl, data=params)
+        soup = BeautifulSoup(r.text, "html.parser")
+        print(soup)
+        informationlist = []
+        for k in soup.find_all('content'):
+            informationlist.append(k.string)
+
+
+
+    def examination(self):
+        url = "http://jwgl.ouc.edu.cn/taglib/DataTable.jsp?tableId=2538"
+        headers = {'Host': self.__nowUrl,
+                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
+                   'Accept-Encoding': 'gzip, deflate',
+                   'Content-Type': 'application/x-www-form-urlencoded',
+                   'Referer': 'http://'+self.__nowUrl+'/student/ksap.ksapb.html?menucode=JW130603',
+                   'Content-Length': '824',
+                   'Connection': 'keep-alive',
+                   'Cookie': 'JSESSIONID=' + self.__sessionid,
+                   'Upgrade-Insecure-Requests': '1'}
+        params = "initQry=0&xh="+self.__numberid+"&xn=2018&xq=1&xnxq=2018-1&kslcdm=2"
+        s = requests.session()
+        s.headers.update(headers)
+        r = s.post(url, data=params)
+        soup = BeautifulSoup(r.text, "html.parser")
+        informationlist=[]
+        try:
+            for tr in soup.find('tbody').children:
+                # 出现/n情况，/n在soup中被认为是子节点之一
+                if tr != '\n':
+                    tds = tr('td')
+                    if len(tds) != 0:
+                        # 名称，学分，类型，方式，时间，教室，座位
+                        if tds[6].string is None:
+                            informationlist.append(
+                                [tds[1].string, tds[2].string, tds[3].string, tds[5].string, "",
+                                 "", ""])
+                        else:
+                            informationlist.append([tds[1].string, tds[2].string, tds[3].string, tds[5].string, tds[6].string, tds[7].string, tds[8].string])
+            return informationlist
+        except AttributeError as e:
+            return informationlist
 
     # 查询成绩
     def InquiryGrades(self, xn, xq, xh, xnxq):
@@ -1024,406 +1066,4 @@ function generateKeys(keyByte){
 
         return informationlist
 
-    # 选课查询，按学号
-    def SelectClassByNumber(self):
-        # xn = 2017
-        # xq = "夏季学期"
-        # xh = "16020031016"
-        # 夏季学期 0 秋季 1 春季 2
-        number = input("请输入你要查询的学号")
-        params = "xn="+self.__xn+"&xq="+self.__xq+"&xh="+number
-        # str to bytes
-        params = str.encode(params)
-        baseparams = base64.b64encode(params)
-        # 转化bytes to str
-        baseparams = bytes.decode(baseparams)
-        strurl = "http://"+self.__nowUrl+"/wsxk/xkjg.ckdgxsxdkchj_data.jsp?params="+baseparams
-        headers = {'Host': self.__nowUrl,
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                   'Accept-Encoding': 'gzip, deflate',
-                   'Content-Type':'application/x-www-form-urlencoded',
-                   'Referer': 'http://'+self.__nowUrl+'/student/xkjg.wdkb.jsp?menucode=JW130416',
-                   'Content-Length': '824',
-                   'Connection': 'keep-alive',
-                   'Cookie': 'JSESSIONID=' + self.__sessionid,
-                   'Upgrade-Insecure-Requests': '1'}
-        s = requests.session()
-        s.headers.update(headers)
-        r = s.get(strurl)
-        soup = BeautifulSoup(r.text, "html.parser")
-        informationlist = []
-        try:
-            for tr in soup.find('tbody').children:
-                # 出现/n情况，/n在soup中被认为是子节点之一
-                if tr != '\n':
-                    tds = tr('td')
-                    informationlist.append([tds[0].string, tds[1].string, tds[8].string])
-            for i in range(len(informationlist)):
-                information = informationlist[i]
-                print("{:^10}\t{:^6}\t{:^10}".format(information[0], information[1], information[2]))
-        except AttributeError as e:
-            print("暂无选课数据")
-
-    # 由SelectClassByClass调用
-    @staticmethod
-    def SelectClassByClass_UseNumber(xn, xq, nowUrl, sessionid, StuNum, ClassNum):
-        # 夏季学期 0 秋季 1 春季 2
-        params = "xn="+xn+"&xq="+xq+"&xh=" + StuNum
-        # str to bytes
-        params = str.encode(params)
-        baseparams = base64.b64encode(params)
-        # 转化bytes to str
-        baseparams = bytes.decode(baseparams)
-        strurl = "http://"+nowUrl+"/wsxk/xkjg.ckdgxsxdkchj_data.jsp?params=" + baseparams
-        headers = {'Host': nowUrl,
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                   'Accept-Encoding': 'gzip, deflate',
-                   'Content-Type': 'application/x-www-form-urlencoded',
-                   'Referer': 'http://'+nowUrl+'/student/xkjg.wdkb.jsp?menucode=JW130416',
-                   'Content-Length': '824',
-                   'Connection': 'keep-alive',
-                   'Cookie': 'JSESSIONID=' + sessionid,
-                   'Upgrade-Insecure-Requests': '1'}
-        r = requests.get(strurl, headers=headers)
-        # s.headers.update(headers)
-        # r = s.get(strurl)
-        soup = BeautifulSoup(r.text, "html.parser")
-        informationlist = []
-        try:
-            for tr in soup.find('tbody').children:
-                # 出现/n情况，/n在soup中被认为是子节点之一
-                if tr != '\n':
-                    tds = tr('td')
-                    informationlist.append([tds[0].string, tds[1].string, tds[4].string, tds[8].string])
-        except:
-            print(soup)
-            print(xn, xq, nowUrl, sessionid, StuNum, ClassNum)
-        for i in range(len(informationlist)):
-            information = informationlist[i]
-            # information[0]存的是选课号，information[1]存的是课程名称，information[2]存的是是否重修,information[3]存的是选课币数量
-            if information[0] == ClassNum:
-                return information[3], information[2]
-            # print("{:^10}\t{:^6}\t{:^10}".format(information[0], information[1], information[2]))
-
-    # 查询年级专业所有学生
-    def getAllStudentGrade(self):
-        url = "http://" + self.__nowUrl + "/taglib/DataTable.jsp?tableId=3241"
-        headers = { 'Host': self.__nowUrl,
-                    'Connection': 'keep-alive',
-                    'Content-Length': '262',
-                    'Cache-Control': 'max-age=0',
-                    'Origin': 'http://'+ self.__nowUrl,
-                    'Upgrade-Insecure-Requests': '1',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-                    'Referer': 'http://'+self.__nowUrl+'/common/popmsg/popmsg.sendOnlineMessage.jsp',
-                    'Accept-Encoding': 'gzip, deflate',
-                    'Accept-Language': 'zh-CN,zh;q=0.9',
-                    'Cookie': 'JSESSIONID=' + self.__sessionid,
-                    }
-        nj = "2016"
-        # print("选择院(系)/部\n1.[3001]海洋与大气学院\n2.[3002]信息科学与工程学院\n3.[3003]化学化工学院\n4.[3004]海洋地球科学学院\n"
-        #       "5.[3005]海洋生命学院\n6.[3006]水产学院\n7.[3007]食品科学与工程学院\n8.[3008]医药学院\n9.[3009]工程学院\n"
-        #       "10.[3010]环境科学与工程学院\n11.[3011]管理学院\n12.[3012]经济学院\n13.[3013]外国语学院\n14.[3014]文学与新闻传播学院\n"
-        #       "15.[3015]法政学院\n16.[3016]数学科学学院\n17.[3017]材料科学与工程学院\n18.[3018]基础教学中心\n19.[3019]马克思主义学院\n")
-        # choice = input("输入你的选择")
-        # if choice == "1":
-        #     yxbdm = "0048"
-        # elif choice == "2":
-        #     yxbdm = "0050"
-        # elif choice == "3":
-        #     yxbdm = "0051"
-        # elif int(choice) > 3:
-        #     yxbdm = 49 + int(choice)
-        #     yxbdm = "00"+str(yxbdm)
-
-        yxbdm = "0050"
-        zydm = "0011"
-        bjdm = "020031161"
-        # 构造请求信息
-        params = "hidOption=&hidKey=&userId="+self.__numberid+"&roletype=&jsrdm=&jsrmc=&nj="+nj+"&yhdm=&emptyFlag=0&xm=&xn=&xq=&" \
-                 "style=STU&bmdm=&gradeController=on&nj2="+nj+"&yxbdm="+yxbdm+"&zydm="+zydm+"&bjdm="+bjdm+"&sel_role=ADM000&" \
-                 "xnxq=2018-1&sel_skbjdm=&queryInfo=&_xxbt=&xxbt=&_xxnr=&xxnr=&fjmc="
-        s = requests.session()
-        s.headers.update(headers)
-        r = s.post(url, data=params)
-        soup = BeautifulSoup(r.text, "html.parser")
-        informationlist = []
-        try:
-            for tr in soup.find('tbody').children:
-                if tr != "\n":
-                    tds = tr('td')
-                    informationlist.append([tds[1].string, tds[2].string])
-        except:
-            print(" ")
-        sortStudent = []
-        for student in informationlist:
-            gradelist = self.InquiryGrades("0000", "0", student[0], "0000-0")
-            allGrade = 0 #成绩*学分
-            allGrade2 = 0 #学分和
-            allGrade3 = 0 #及格学分
-            print(student[0])
-            for grade in gradelist:
-                if grade[3] != "良好" and grade[3] != "通过" and grade[3] != "中等" and grade[3] != "优秀" and not grade[3][0].isalpha():
-                    allGrade = allGrade + float(grade[1])*float(grade[3])
-                    allGrade2 = allGrade2 + float(grade[1])
-                    if float(grade[1]) > 60:
-                        allGrade3 = allGrade3 + float(grade[1])
-            if int(float(allGrade2)) != 0:
-                powerGrade = allGrade/allGrade2 + allGrade3*0.2
-                sortStudent.append([student[0], student[1], powerGrade])
-
-        def quickSort(L, low, high):
-            i = low
-            j = high
-            if i >= j:
-                return L
-            key = L[i]
-            while i < j:
-                while i < j and float(L[j][2]) >= float(key[2]):
-                    j = j - 1
-                L[i] = L[j]
-                while i < j and float(L[i][2]) <= float(key[2]):
-                    i = i + 1
-                L[j] = L[i]
-            L[i] = key
-            quickSort(L, low, i - 1)
-            quickSort(L, j + 1, high)
-            return L
-
-        informationAboutGrade = quickSort(sortStudent, 0, len(sortStudent) - 1)
-        for i in range(len(informationAboutGrade)):
-            information = informationAboutGrade[len(informationAboutGrade) - 1 - i]
-            print("{:^10}\t{:^10}\t{:^10}\t{:^10}".format(i + 1, information[0], information[1], information[2]))
-
-    # 获取给分情况
-    def getClassGrade(self):
-        headers = {'Host': self.__nowUrl,
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                   'Accept-Encoding': 'gzip, deflate',
-                   'Content-Type':'application/x-www-form-urlencoded',
-                   'Referer': 'http://'+self.__nowUrl+'/common/popmsg/popmsg.sendOnlineMessage.jsp',
-                   'Content-Length': '824',
-                   'Connection': 'keep-alive',
-                   'Cookie': 'JSESSIONID=' + self.__sessionid,
-                   'Upgrade-Insecure-Requests': '1'}
-        # sel_skbjdm = "02003011"
-        sel_skbjdm = input("请输入选课号")
-        # 构造请求信息
-        params = "hidOption= &hidKey=&userId="+self.__numberid+"&roletype=&jsrdm=&jsrmc=&nj="+self.__xn+"&" \
-                "yhdm=&emptyFlag=0&xm=& xn=&xq=&style=SKBJDM&bmdm=&gradeController=on&" \
-                "nj2="+self.__xn+"&yxbdm=&sel_role=ADM000&xnxq= "+self.__xn+"-"+self.__xq+"&sel_skbjdm="+sel_skbjdm+"&" \
-                "queryInfo=&_xxbt=&xxbt=&_xxnr=&xxnr=& fjmc="
-        url = "http://"+self.__nowUrl+"/taglib/DataTable.jsp?tableId=3241&type=skbjdm"
-        s = requests.session()
-        s.headers.update(headers)
-        r = s.post(url, data=params)
-        soup = BeautifulSoup(r.text, "html.parser")
-        # 选该课人员
-        studentinformationlist = []
-        try:
-            for tr in soup.find('tbody').children:
-                if tr.name != "input":
-                    tds = tr('td')
-                    studentinformationlist.append([tds[1].string, tds[2].string, tds[3].string, tds[5].string])
-        except:
-            print("暂无数据，请重试")
-
-        params = "xn=" + self.__xn + "&xq=" + self.__xq + "&xh=" + studentinformationlist[0][0]
-        # str to bytes
-        params = str.encode(params)
-        baseparams = base64.b64encode(params)
-        # 转化bytes to str
-        baseparams = bytes.decode(baseparams)
-        strurl = "http://" + self.__nowUrl + "/wsxk/xkjg.ckdgxsxdkchj_data.jsp?params=" + baseparams
-        headers = {'Host': self.__nowUrl,
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                   'Accept-Encoding': 'gzip, deflate',
-                   'Content-Type': 'application/x-www-form-urlencoded',
-                   'Referer': 'http://' + self.__nowUrl + '/student/xkjg.wdkb.jsp?menucode=JW130416',
-                   'Content-Length': '824',
-                   'Connection': 'keep-alive',
-                   'Cookie': 'JSESSIONID=' + self.__sessionid,
-                   'Upgrade-Insecure-Requests': '1'}
-        s = requests.session()
-        s.headers.update(headers)
-        r = s.get(strurl)
-        soup = BeautifulSoup(r.text, "html.parser")
-        className = ""
-        informationlist = []
-        try:
-            for tr in soup.find('tbody').children:
-                # 出现/n情况，/n在soup中被认为是子节点之一
-                if tr != '\n':
-                    tds = tr('td')
-                    informationlist.append([tds[0].string, tds[1].string, tds[8].string])
-            for i in range(len(informationlist)):
-                information = informationlist[i]
-                if information[0] == sel_skbjdm:
-                    className = information[1]
-                    break
-                # print("{:^10}\t{:^6}\t{:^10}".format(information[0], information[1], information[2]))
-        except AttributeError as e:
-            print("暂无选课数据")
-
-        score = []
-        for student in studentinformationlist:
-            gradelist = self.InquiryGrades("0000", "0", student[0], "0000-0")
-            for grade in gradelist:
-                if grade[0] == className:
-                    print(student[0])
-                    score.append([student[0], student[1], grade[3]])
-
-        def quickSort(L, low, high):
-            i = low
-            j = high
-            if i >= j:
-                return L
-            key = L[i]
-            while i < j:
-                while i < j and float(L[j][2]) >= float(key[2]):
-                    j = j - 1
-                L[i] = L[j]
-                while i < j and float(L[i][2]) <= float(key[2]):
-                    i = i + 1
-                L[j] = L[i]
-            L[i] = key
-            quickSort(L, low, i - 1)
-            quickSort(L, j + 1, high)
-            return L
-
-        score = quickSort(score, 0, len(score) - 1)
-        for i in range(len(score)):
-            information = score[len(score) - 1 - i]
-            print("{:^10}\t{:^10}\t{:^10}\t{:^10}".format(i + 1, information[0], information[1], int(float(information[2]))))
-        numlist = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for i in range(len(score)):
-            information = score[len(score) - 1 - i]
-            local = int(int(float(information[2]))/10)
-            numlist[local] = numlist[local] + 1
-
-        # rects = plt.bar(range(len(numlist)), numlist, color='rgby')
-        # name_list = ['>=0', '>=10', '>=20', '>=30', '>=40', '>=50', '>=60', '>=70', '>=80', '>=90']
-        # plt.xticks(range(len(numlist)), name_list)
-        # plt.ylabel("人数")
-        # for rect in rects:
-        #     height = rect.get_height()
-        #     plt.text(rect.get_x() + rect.get_width() / 2., 1.03 * height, '%s' % float(height))
-        # plt.show()
-    # 选课查询，按课程
-    def SelectClassByClass(self):
-        headers = {'Host': self.__nowUrl,
-                   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-                   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                   'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
-                   'Accept-Encoding': 'gzip, deflate',
-                   'Content-Type':'application/x-www-form-urlencoded',
-                   'Referer': 'http://'+self.__nowUrl+'/common/popmsg/popmsg.sendOnlineMessage.jsp',
-                   'Content-Length': '824',
-                   'Connection': 'keep-alive',
-                   'Cookie': 'JSESSIONID=' + self.__sessionid,
-                   'Upgrade-Insecure-Requests': '1'}
-        # sel_skbjdm = "02003011"
-        sel_skbjdm = input("请输入选课号")
-        # 构造请求信息
-        params = "hidOption= &hidKey=&userId="+self.__numberid+"&roletype=&jsrdm=&jsrmc=&nj="+self.__xn+"&" \
-                "yhdm=&emptyFlag=0&xm=& xn=&xq=&style=SKBJDM&bmdm=&gradeController=on&" \
-                "nj2="+self.__xn+"&yxbdm=&sel_role=ADM000&xnxq= "+self.__xn+"-"+self.__xq+"&sel_skbjdm="+sel_skbjdm+"&" \
-                "queryInfo=&_xxbt=&xxbt=&_xxnr=&xxnr=& fjmc="
-        url = "http://"+self.__nowUrl+"/taglib/DataTable.jsp?tableId=3241&type=skbjdm"
-        s = requests.session()
-        s.headers.update(headers)
-        r = s.post(url, data=params)
-        soup = BeautifulSoup(r.text, "html.parser")
-        informationlist = []
-        informationAboutClass = []
-        try:
-            for tr in soup.find('tbody').children:
-                if tr.name != "input":
-                    tds = tr('td')
-                    informationlist.append([tds[1].string, tds[2].string, tds[3].string, tds[5].string])
-
-            # 多线程查询，信息表，选课号，线程数
-            n_thread = int(input("输入线程数（不建议过大=。=）："))
-            q = Thread.processSelect(self.__xn, self.__xq, self.__nowUrl, self.__sessionid, informationlist, sel_skbjdm, n_thread)
-            while not q.empty():
-                informationAboutClass.append(q.get())
-            # 单线程查询
-            # countOfLose = 0
-            # for i in range(len(informationlist)):
-            #     try:
-            #         information = informationlist[i]
-            #         # print("{:^10}\t{:^6}\t{:^10}".format(information[0], information[1], information[2]))
-            #         moneyOfClass, ifReStudy = self.SelectClassByClass_UseNumber(self.__xn, self.__xq, self.__nowUrl, self.__sessionid, information[0], sel_skbjdm)
-            #         powerOfCoin = moneyOfClass
-            #         print(int(str(information[0])))
-            #         if(int(str(information[0])) >= 17000000000 and int(str(information[0]))< 18000000000):
-            #             powerOfCoin = int(str(moneyOfClass))*1
-            #         if (int(str(information[0])) >= 16000000000 and int(str(information[0])) < 17000000000):
-            #             powerOfCoin = int(str(moneyOfClass))*1.1
-            #         if (int(str(information[0])) >= 15000000000 and int(str(information[0])) < 16000000000):
-            #             powerOfCoin = int(str(moneyOfClass))*1.2
-            #         if (int(str(information[0])) >= 14000000000 and int(str(information[0])) < 15000000000):
-            #             powerOfCoin = int(str(moneyOfClass))*1.3
-            #         informationAboutClass.append([powerOfCoin, moneyOfClass, ifReStudy, information[0], information[1], information[2]])
-            #     except urllib.request.HTTPError as e:
-            #         countOfLose += 1
-            #         print("丢失数据:")
-            #         print(countOfLose)
-            #         print("\n")
-            #         print(e.code)
-            #         print(e.reason)
-
-            def quickSort(L, low, high):
-                i = low
-                j = high
-                if i >= j:
-                    return L
-                key = L[i]
-                while i < j:
-                    while i < j and int(str(L[j][1])) >= int(str(key[1])):
-                        j = j-1
-                    L[i] = L[j]
-                    while i < j and int(str(L[i][1])) <= int(str(key[1])):
-                        i = i+1
-                    L[j] = L[i]
-                L[i] = key
-                quickSort(L, low, i-1)
-                quickSort(L, j+1, high)
-                return L
-            informationAboutClass = quickSort(informationAboutClass, 0, len(informationAboutClass)-1)
-
-            for i in range(len(informationAboutClass)):
-                information = informationAboutClass[len(informationAboutClass)-1-i]
-                print("{:^10}\t{:^10}\t{:^10}\t{:^10}\t{:^10}\t{:^10}\t{:^10}".format(i+1, information[0], information[1], information[2], information[3], information[4], information[5]))
-            print("总共丢失数据:")
-            # print(countOfLose)
-            print("\n")
-        except AttributeError as e:
-            print("暂无选课数据")
-
-    @staticmethod
-    def acquirePhoto():
-        studentNumber = int(input("请输入你的学号"))
-        # 1026是16级和之前的
-        if studentNumber > 17000000000:
-            time = "20170815"
-        else:
-            time = "20161026"
-        strStudentNumber = str(studentNumber)
-        url = "http://hqxsgy.ouc.edu.cn/uploadfile/image/photos/" + time + "/" + strStudentNumber + ".jpg"
-        r = requests.get(url)
-        name = strStudentNumber + ".jpg"
-        with open(name, "wb") as fp:
-            fp.write(r.content)
-        print("操作成功！")
 

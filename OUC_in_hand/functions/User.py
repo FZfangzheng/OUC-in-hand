@@ -3,6 +3,8 @@
 import requests
 import execjs
 import hashlib
+from functions import Functions
+from functions.models import *
 
 
 class Student:
@@ -139,7 +141,23 @@ class Student:
     #         print("Error happened in getEncParams()")
     #         return "", "", ""
 
-    def loginext(self):
+    def getAllInformation(self, openid):
+        function = Functions.Function(self.__username, self.__url, self.__sessionid, self.__deskey, self.__nowtime)
+        xn = "0000"
+        xq = "0"
+        informationlist = function.InquiryGrades(xn, xq, self.__username, xn + "-" + xq)
+        exam_infor = function.examination()
+        classInfor = function.myclass()
+        for i in range(len(informationlist)):
+            information = informationlist[i]
+            grade = Grade(openid=openid, class_name=information[0], class_credit=information[1], class_grade=information[3])
+            grade.save()
+        for i in range(len(exam_infor)):
+            information = exam_infor[i]
+            exam = Exam(openid=openid, class_name=information[0], class_credit=information[1], class_type=information[2], class_way=information[3], class_time=information[4], class_location=information[5], class_seat=information[6])
+            exam.save()
+
+    def loginext(self, openid):
         randnumber = ""
         p_username = "_u" + randnumber
         p_password = "_p" + randnumber
@@ -165,6 +183,7 @@ class Student:
         s.headers.update(_headers)
         r = s.post(postUrl, data=params)
         if r.text == '{"message":"操作成功!","result":"\/MainFrm.html","status":"200"}':
+            self.getAllInformation(openid)
             return True
         else:
             return False
