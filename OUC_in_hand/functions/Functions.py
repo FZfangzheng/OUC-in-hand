@@ -61,14 +61,9 @@ class Function:
         self.__xq = xq
 
     def myclass(self):
-        params = "xn="+self.__xn+"&xq="+self.__xq+"&xh="+self.__numberid
-        # str to bytes
-        params = str.encode(params)
-        baseparams = base64.b64encode(params)
-        # 转化bytes to str
-        baseparams = bytes.decode(baseparams)
+
         # strurl = "http://"+self.__nowUrl+"/student/wsxk.xskcb.jsp?params="+baseparams
-        strurl = "http://jwgl.ouc.edu.cn/STU_DynamicInitDataAction.do?classPath=com.kingosoft.service.jw.student.jxap.LessonScheduleService&mtd=getDataSource&xn=2018&xq=1"
+        strurl = "http://jwgl.ouc.edu.cn/STU_DynamicInitDataAction.do"
         headers = {'Host': self.__nowUrl,
                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -85,10 +80,10 @@ class Function:
         s.headers.update(headers)
         r = s.post(strurl, data=params)
         soup = BeautifulSoup(r.text, "html.parser")
-        print(soup)
         informationlist = []
         for k in soup.find_all('content'):
             informationlist.append(k.string)
+        return informationlist
 
 
 

@@ -148,6 +148,10 @@ class Student:
         informationlist = function.InquiryGrades(xn, xq, self.__username, xn + "-" + xq)
         exam_infor = function.examination()
         classInfor = function.myclass()
+        for i in range(len(classInfor)):
+            information = classInfor[i]
+            classes = Classes(openid=openid, class_name=information)
+            classes.save()
         for i in range(len(informationlist)):
             information = informationlist[i]
             grade = Grade(openid=openid, class_name=information[0], class_credit=information[1], class_grade=information[3])

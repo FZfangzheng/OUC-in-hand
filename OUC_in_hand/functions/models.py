@@ -25,3 +25,8 @@ class Exam(models.Model):
     class_time = models.CharField(max_length=30)
     class_location = models.CharField(max_length=30)
     class_seat = models.CharField(max_length=30)
+
+
+class Classes(models.Model):
+    openid = models.CharField(max_length=30)
+    class_name = models.CharField(max_length=100)

@@ -69,13 +69,20 @@ class WeChat:
                 del_session(self.data.get("FromUserName"), "username")
                 return "绑定失败！"
         if self.data.get("Content") == "课表":
-            pass
+            return self.classes()
         elif self.data.get("Content") == "成绩":
             return self.grade()
         elif self.data.get("Content") == "考试安排":
             return self.exam()
         else:
             return "输入特定关键字使用功能\n1.绑定账号\n2.课表\n3.成绩\n4.考试安排"
+
+    def classes(self):
+        myClass = Classes.objects.filter(openid=self.data.get("FromUserName"))
+        grade = ""
+        for c in myClass:
+            grade = grade+c.class_name+"\n"
+        return grade
 
     def exam(self):
         myExam = Exam.objects.filter(openid=self.data.get("FromUserName"))
