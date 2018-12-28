@@ -26,5 +26,3 @@ def index(request):
             return HttpResponse(wechat.reply_text(content))
         else:
             return HttpResponse("success")
-
-

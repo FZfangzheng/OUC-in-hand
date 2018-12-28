@@ -28,14 +28,18 @@ class WeChat:
     # 用于分辨信息类型，文本，图片
     def classify(self):
         type = self.data.get("MsgType")
+        even = self.data.get("Event")
+
         if type == "text":
+            return True
+        if even == 'CLICK':
             return True
         else:
             return False
 
     # 文本信息功能回复
     def function_text_classify(self):
-        if self.data.get("Content") == "绑定账号":
+        if self.data.get("Content") == "绑定账号" or self.data.get("EvenKey") == "绑定账号":
             # 绑定状态
             create_session(self.data.get("FromUserName"), "binding", 1)
             return "请输入账号"
@@ -68,11 +72,11 @@ class WeChat:
                 del_session(self.data.get("FromUserName"), "binding")
                 del_session(self.data.get("FromUserName"), "username")
                 return "绑定失败！"
-        if self.data.get("Content") == "课表":
+        if self.data.get("Content") == "课表" or self.data.get("EvenKey") == "课表":
             return self.classes()
-        elif self.data.get("Content") == "成绩":
+        elif self.data.get("Content") == "成绩" or self.data.get("EvenKey") == "成绩":
             return self.grade()
-        elif self.data.get("Content") == "考试安排":
+        elif self.data.get("Content") == "考试安排" or self.data.get("EvenKey") == "考试安排":
             return self.exam()
         else:
             return "输入特定关键字使用功能\n1.绑定账号\n2.课表\n3.成绩\n4.考试安排"
